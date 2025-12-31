@@ -25,11 +25,9 @@ int main(int argc, char* argv[]) {
     
     JobResult res = manager.processJobs(prev, curr);
 
-    std::cout << "Jobs to update database:";
     for (int id : res.to_update) {
-        std::cout << id << " ";
+        std::cout << id << endl;
     }
-    std::cout << std::endl;
 
     writeJobToFile(res.new_prev_map, currPath.string());
 
