@@ -12,6 +12,9 @@ map<int, string> readJobMapFromFile(string path)
 
     fs::path filepath = fs::absolute(path);
 
+    cout << "path" << path << endl;
+    cout << "abspath" << filepath << endl;
+
     if (!(fs::exists(filepath)))
     {
         cout << "path not found" << endl;
@@ -44,14 +47,17 @@ map<int, string> readJobMapFromFile(string path)
     return data;
 }
 
-void writeJobToFile(map<int, string> jobs)
+void writeJobToFile(map<int, string> jobs, string path)
 {
 
     ofstream DataFile;
-    fs::path filepath = fs::absolute("./data/prev");
+    fs::path filepath = fs::absolute(path);
     fs::create_directories(filepath.parent_path());
 
     DataFile.open(filepath);
+
+    cout << "path" << path << endl;
+    cout << "abs path" << filepath << endl;
 
     if (DataFile.is_open())
     {
