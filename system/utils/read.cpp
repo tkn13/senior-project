@@ -11,7 +11,7 @@ map<int, string> readJobMapFromFile(string path)
 {
 
     fs::path filepath = fs::absolute(path);
-
+	
     if (!(fs::exists(filepath)))
     {
         cout << "path not found" << endl;
@@ -52,7 +52,6 @@ void writeJobToFile(map<int, string> jobs, string path)
     fs::create_directories(filepath.parent_path());
 
     DataFile.open(filepath);
-
     if (DataFile.is_open())
     {
         for (auto job : jobs)

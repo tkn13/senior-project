@@ -21,15 +21,15 @@ int main(int argc, char* argv[]) {
     JobManager manager;
 
     std::map<int, std::string> prev = readJobMapFromFile(prevPath.string());
-    std::map<int, std::string> curr = readJobMapFromFile(prevPath.string());
-    
+    std::map<int, std::string> curr = readJobMapFromFile(currPath.string());
+
     JobResult res = manager.processJobs(prev, curr);
 
     for (int id : res.to_update) {
         std::cout << id << endl;
     }
 
-    writeJobToFile(res.new_prev_map, currPath.string());
+    writeJobToFile(res.new_prev_map, prevPath.string());
 
     return 0;
 }
