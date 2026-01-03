@@ -20,8 +20,8 @@ int main(int argc, char* argv[]) {
 
     JobManager manager;
 
-    std::map<int, std::string> prev = readJobMapFromFile(prevPath.string());
-    std::map<int, std::string> curr = readJobMapFromFile(currPath.string());
+    JobMap prev = readJobMapFromFile(prevPath.string());
+    JobMap curr = readJobMapFromFile(currPath.string());
 
     JobResult res = manager.processJobs(prev, curr);
 
