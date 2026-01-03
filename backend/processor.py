@@ -1,6 +1,6 @@
 import influxdb_client, os, asyncio
 from influxdb_client import InfluxDBClient
-from backend.read import get_query_text_node_cpu, get_query_text_node_mem
+from templates import get_query_text_node_cpu, get_query_text_node_mem, get_query_text_running_job
 from typing import Optional
 from dataclasses import dataclass
 from datetime import datetime
@@ -73,6 +73,20 @@ async def get_node_mem(
             return_value.append(MetricUnit(record['_time'], record['_value']))
     return return_value
 
+async def get_running_job(
+    node_id: str) -> list[MetricUnit]:
+    query = get_query_text_running_job(node_id)
+
+    tables = query_api.query(query, org=org)
+    
+    return_value: list[MetricUnit] = []
+
+    for table in tables:
+        for record in table.records:
+            print(record)
+
+    return return_value
+
 async def get_node_metric(
     node_id: str,
     time_delta: Optional[str] = "-1h",
@@ -114,10 +128,6 @@ async def get_node_metric(
         resource_usage=resource_usage))
 
 async def main():
-    data = await get_node_metric("blade-n1", time_delta="-5m")
-
-    for i in data:
-        print(f"time: {i.timestamp}, cpu: {i.cpu}, mem: {i.mem}")
-
+    await get_running_job("blade-n1")
 #if __name__ == "__main__":
 #    asyncio.run(main())

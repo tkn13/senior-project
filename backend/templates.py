@@ -55,3 +55,12 @@ def get_query_text_node_mem(
 
     return query_text
 
+def get_query_text_running_job(node_id: str) -> str:
+
+    query_text = f"""from(bucket: \"blade-resource\")
+        |> range(start: -1h)
+        |> filter(fn: (r) => r[\"_measurement\"] == \"job_history\")
+        |> filter(fn: (r) => r[\"_field\"] == \"state\" or r[\"_field\"] == \"node_alloc\" and r[\"_value\"] == \"{node_id}\")
+        |> pivot(rowKey:[\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")"""
+
+    return query_text

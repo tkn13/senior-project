@@ -17,7 +17,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 from middleware import isPass
-from backend.api import get_node_metric
+from processor import get_node_metric
 
 app = FastAPI()
 
