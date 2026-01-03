@@ -1,5 +1,7 @@
 #!/bin/bash
 
-./daemon/capture_job_list.sh > ./build/data/curr
+SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
 
-./build/Main | ./daemon/update_to_database.sh
+$SCRIPT_DIR/daemon/capture_job_list.sh > $SCRIPT_DIR/build/data/curr
+
+$SCRIPT_DIR/build/Main | $SCRIPT_DIR/daemon/update_to_database.sh
