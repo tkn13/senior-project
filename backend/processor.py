@@ -9,6 +9,7 @@ import os
 
 load_dotenv()
 token = os.getenv("INFLUXDB_TOKEN")
+dataPath = os.getenv("DATA_PATH")
 org = "blade"
 url = "http://127.0.0.1:8086"
 
@@ -76,17 +77,41 @@ async def get_node_mem(
             return_value.append(MetricUnit(record['_time'], record['_value']))
     return return_value
 
-async def get_running_job(
-    node_id: str) -> list[MetricUnit]:
-    query = get_query_text_running_job(node_id)
+def get_running_job(
+    node_id: str) -> list[str]:
 
-    tables = query_api.query(query, org=org)
+    return_value = []
     
-    return_value: list[MetricUnit] = []
+    try:
+        with open(dataPath, 'r') as file:
+            for line in file:
+                line = line.strip()
+                if not line:
+                    continue
 
-    for table in tables:
-        for record in table.records:
-            print(record)
+                parts = line.split(' ')
+
+                if len(parts) != 2:
+                    continue
+
+                header_info = parts[0].split(',')
+                current_job_id = None
+                for i in header_info:
+                    if 'job_id' in i:
+                        current_job_id = (i.split('='))[1]
+
+                details = parts[1].replace('"', "").split(",")
+                state = ""
+                node = ""
+                for i in details:
+                    if 'state' in i:
+                        state = (i.split('='))[1]
+                    elif 'node_alloc' in i:
+                        node = (i.split('='))[1]
+                if(state == "RUNNING" and node == node_id):
+                    return_value.append(current_job_id)
+    except FileNotFoundError:
+        print(f"Error: The file at {dataPath} was not found.")
 
     return return_value
 
@@ -127,10 +152,10 @@ async def get_node_metric(
     return (NodeMetricResponse(
         node_id=node_id, 
         node_status="up", 
-        current_job=None,
+        current_job=get_running_job(node_id)
         resource_usage=resource_usage))
 
 async def main():
-    await get_running_job("blade-n1")
-#if __name__ == "__main__":
-#    asyncio.run(main())
+    print(get_running_job("blade-n1"))
+if __name__ == "__main__":
+    asyncio.run(main())
