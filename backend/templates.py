@@ -54,4 +54,3 @@ def get_query_text_node_mem(
         |> filter(fn: (r) => r[\"host\"] == \"{node_id}\")"""
 
     return query_text
-

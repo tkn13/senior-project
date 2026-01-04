@@ -14,4 +14,6 @@ main.cpp
 JobManager.cpp
 utils/read.cpp)
 
+target_include_directories(Main PRIVATE ${CMAKE_SOURCE_DIR})
+
 file(COPY "${CMAKE_SOURCE_DIR}/data" DESTINATION "${CMAKE_BINARY_DIR}")

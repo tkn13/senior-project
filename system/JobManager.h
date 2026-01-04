@@ -6,16 +6,17 @@
 #include <map>
 #include <string>
 #include <set>
+#include "model/JobModel.h"
 
 // Data structure to hold the output of our processing
 struct JobResult {
-    std::map<int, std::string> new_prev_map;
+    JobMap new_prev_map;
     std::vector<int> to_update;
 };
 
 class JobManager {
 public:
-    JobResult processJobs(std::map<int, std::string>& prev_map, std::map<int, std::string>& curr_map);
+    JobResult processJobs(JobMap& prev_map, JobMap& curr_map);
 };
 
 #endif

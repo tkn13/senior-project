@@ -3,8 +3,12 @@
 
 #include <string>
 #include <map>
+#include "model/JobModel.h"
 
-std::map<int, std::string> readJobMapFromFile(std::string path);
-void writeJobToFile(std::map<int, std::string> jobs);
+using namespace std;
+
+JobMap readJobMapFromFile(std::string path);
+void writeJobToFile(JobMap jobs, std::string path);
+
 
 #endif

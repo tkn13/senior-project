@@ -1,11 +1,15 @@
 import influxdb_client, os, asyncio
 from influxdb_client import InfluxDBClient
-from backend.read import get_query_text_node_cpu, get_query_text_node_mem
+from templates import get_query_text_node_cpu, get_query_text_node_mem
 from typing import Optional
 from dataclasses import dataclass
 from datetime import datetime
+from dotenv import load_dotenv
+import os
 
-token = os.environ.get("INFLUXDB_TOKEN")
+load_dotenv()
+token = os.getenv("INFLUXDB_TOKEN")
+dataPath = os.getenv("DATA_PATH")
 org = "blade"
 url = "http://127.0.0.1:8086"
 
@@ -73,6 +77,44 @@ async def get_node_mem(
             return_value.append(MetricUnit(record['_time'], record['_value']))
     return return_value
 
+def get_running_job(
+    node_id: str) -> list[str]:
+
+    return_value = []
+    
+    try:
+        with open(dataPath, 'r') as file:
+            for line in file:
+                line = line.strip()
+                if not line:
+                    continue
+
+                parts = line.split(' ')
+
+                if len(parts) != 2:
+                    continue
+
+                header_info = parts[0].split(',')
+                current_job_id = None
+                for i in header_info:
+                    if 'job_id' in i:
+                        current_job_id = (i.split('='))[1]
+
+                details = parts[1].replace('"', "").split(",")
+                state = ""
+                node = ""
+                for i in details:
+                    if 'state' in i:
+                        state = (i.split('='))[1]
+                    elif 'node_alloc' in i:
+                        node = (i.split('='))[1]
+                if(state == "RUNNING" and node == node_id):
+                    return_value.append(current_job_id)
+    except FileNotFoundError:
+        print(f"Error: The file at {dataPath} was not found.")
+
+    return return_value
+
 async def get_node_metric(
     node_id: str,
     time_delta: Optional[str] = "-1h",
@@ -110,14 +152,10 @@ async def get_node_metric(
     return (NodeMetricResponse(
         node_id=node_id, 
         node_status="up", 
-        current_job=None,
+        current_job=get_running_job(node_id),
         resource_usage=resource_usage))
 
 async def main():
-    data = await get_node_metric("blade-n1", time_delta="-5m")
-
-    for i in data:
-        print(f"time: {i.timestamp}, cpu: {i.cpu}, mem: {i.mem}")
-
+    print(get_running_job("blade-n1"))
 #if __name__ == "__main__":
 #    asyncio.run(main())
