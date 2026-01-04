@@ -1,6 +1,6 @@
 import influxdb_client, os, asyncio
 from influxdb_client import InfluxDBClient
-from templates import get_query_text_node_cpu, get_query_text_node_mem, get_query_text_running_job
+from templates import get_query_text_node_cpu, get_query_text_node_mem
 from typing import Optional
 from dataclasses import dataclass
 from datetime import datetime
@@ -152,10 +152,10 @@ async def get_node_metric(
     return (NodeMetricResponse(
         node_id=node_id, 
         node_status="up", 
-        current_job=get_running_job(node_id)
+        current_job=get_running_job(node_id),
         resource_usage=resource_usage))
 
 async def main():
     print(get_running_job("blade-n1"))
-if __name__ == "__main__":
-    asyncio.run(main())
+#if __name__ == "__main__":
+#    asyncio.run(main())
