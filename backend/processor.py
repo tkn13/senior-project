@@ -4,8 +4,11 @@ from templates import get_query_text_node_cpu, get_query_text_node_mem, get_quer
 from typing import Optional
 from dataclasses import dataclass
 from datetime import datetime
+from dotenv import load_dotenv
+import os
 
-token = os.environ.get("INFLUXDB_TOKEN")
+load_dotenv()
+token = os.getenv("INFLUXDB_TOKEN")
 org = "blade"
 url = "http://127.0.0.1:8086"
 
