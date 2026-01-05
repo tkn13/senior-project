@@ -18,6 +18,8 @@ from pydantic import BaseModel
 
 from middleware import isPass
 from processor import get_node_metric
+from api.NodeList import get_list_of_node_state
+
 
 app = FastAPI()
 
@@ -61,10 +63,7 @@ async def nodeById(headers: Annotated[CommonHeaders, Header()],
  
 @app.get("/api/metrics/node/list")
 async def nodeAll(headers: Annotated[CommonHeaders, Header()]):
-    return JSONResponse(
-        status_code=201,
-        content={"message": "/metrics/node/list"}
-    )
+    return get_list_of_node_state()
 
 @app.get("/api/metrics/job/{job_id}")
 async def jobById(job_id, headers: Annotated[CommonHeaders, Header()]):
