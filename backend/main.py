@@ -52,7 +52,11 @@ async def clusterSummary(headers: Annotated[CommonHeaders, Header()]):
         status_code=201,
         content={"message": "/metrics/cluster/summary"}
     )
-   
+
+@app.get("/api/metrics/node/list")
+async def nodeAll(headers: Annotated[CommonHeaders, Header()]):
+    return get_list_of_node_state()
+
 @app.get("/api/metrics/node/{node_id}")
 async def nodeById(headers: Annotated[CommonHeaders, Header()],
     node_id: str, 
@@ -60,18 +64,7 @@ async def nodeById(headers: Annotated[CommonHeaders, Header()],
     start_time: Union[str, None] = None, 
     end_time: Union[str, None] = None):
     return await get_node_metric(node_id, time_delta=time_delta, start_time=start_time, end_time=end_time)
- 
-@app.get("/api/metrics/node/list")
-async def nodeAll(headers: Annotated[CommonHeaders, Header()]):
-    return get_list_of_node_state()
 
-@app.get("/api/metrics/job/{job_id}")
-async def jobById(job_id, headers: Annotated[CommonHeaders, Header()]):
-    return JSONResponse(
-        status_code=201,
-        content={"message": job_id}
-    )
- 
 @app.get("/api/metrics/job/list")
 async def jobAll(headers: Annotated[CommonHeaders, Header()]):
     return JSONResponse(
@@ -79,3 +72,9 @@ async def jobAll(headers: Annotated[CommonHeaders, Header()]):
         content={"message": "/metrics/job/list"}
     )
  
+@app.get("/api/metrics/job/{job_id}")
+async def jobById(job_id, headers: Annotated[CommonHeaders, Header()]):
+    return JSONResponse(
+        status_code=201,
+        content={"message": job_id}
+    )

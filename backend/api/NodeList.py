@@ -1,19 +1,26 @@
 from dataclasses import dataclass
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+dataPath = os.getenv("DATA_NODE_PATH")
 
 @dataclass
 class NodeListResponse:
-    idleNode: [str]
-    busyNode: [str]
-    downNode: [str]
+    idleNode: list[str]
+    busyNode: list[str]
+    downNode: list[str]
 
 def get_list_of_node_state() -> NodeListResponse:
-    input = """idle:blade-n1,blade-n2,blade-n3,blade-n4,blade-n7,blade-n8
-    Busy:
-    down:blade-n5,blade-n6"""
 
-    idle = [str]
-    busy = [str]
-    down = [str]
+    input = ""
+
+    with open(dataPath) as line:
+        input = line.read()
+
+    idle = []
+    busy = []
+    down = []
 
     for line in input.splitlines():
         item = line.split(":")
@@ -29,9 +36,5 @@ def get_list_of_node_state() -> NodeListResponse:
                 busy.append(node)
             else:
                 down.append(node)
-
-    print(idle)
-    print(busy)
-    print(down)
 
     return NodeListResponse(idle, busy, down)                
