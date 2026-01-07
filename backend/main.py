@@ -19,7 +19,9 @@ from pydantic import BaseModel
 from middleware import isPass
 from processor import get_node_metric
 from api.NodeList import get_list_of_node_state
+from api.Job import get_list_of_job_state
 
+from schema.Job import JobResponse
 
 app = FastAPI()
 
@@ -53,7 +55,7 @@ async def clusterSummary(headers: Annotated[CommonHeaders, Header()]):
         content={"message": "/metrics/cluster/summary"}
     )
 
-@app.get("/api/metrics/node/list")
+@app.get("/api/metrics/node")
 async def nodeAll(headers: Annotated[CommonHeaders, Header()]):
     return get_list_of_node_state()
 
@@ -65,12 +67,9 @@ async def nodeById(headers: Annotated[CommonHeaders, Header()],
     end_time: Union[str, None] = None):
     return await get_node_metric(node_id, time_delta=time_delta, start_time=start_time, end_time=end_time)
 
-@app.get("/api/metrics/job/list")
+@app.get("/api/metrics/job", response_model=JobResponse)
 async def jobAll(headers: Annotated[CommonHeaders, Header()]):
-    return JSONResponse(
-        status_code=201,
-        content={"message": "/metrics/job/list"}
-    )
+    return get_list_of_job_state()
  
 @app.get("/api/metrics/job/{job_id}")
 async def jobById(job_id, headers: Annotated[CommonHeaders, Header()]):
