@@ -1,47 +1,30 @@
+import subprocess
 from schema.Job import JobResponse
-from dotenv import load_dotenv
-import os
 
-load_dotenv()
-dataPath = os.getenv("DATA_PATH")
+def get_list_of_job_state():
+    
+    result = subprocess.run(["squeue", "-h", "-o", "%A,%T"], capture_output=True, text=True)
+    
+    if result.returncode != 0:
+        return JobResponse(
+            runningId = [],
+            pendingId = []
+        )
 
-def get_list_of_job_state() -> JobResponse:
+    data = result.stdout
 
     runningJob = []
     pendingJob = []
 
-    try:
-        with open(dataPath, 'r') as file:
-            for line in file:
-                line = line.strip()
-                if not line:
-                    continue
+    for line in data.splitlines():
+        jobId, state = line.split(',', 1)
 
-                parts = line.split(' ')
+        if state == "RUNNING":
+            runningJob.append(jobId)
+        elif state == "PENDING":
+            pendingJob.append(jobId)
 
-                if len(parts) != 2:
-                    continue
-
-                header_info = parts[0].split(',')
-                current_job_id = None
-                for i in header_info:
-                    if 'job_id' in i:
-                        current_job_id = (i.split('='))[1]
-
-                details = parts[1].replace('"', "").split(",")
-                state = ""
-                for i in details:
-                    if 'state' in i:
-                        state = (i.split('='))[1]
-                if(state == "RUNNING"):
-                    runningJob.append(current_job_id)
-                elif(state == "PENDING"):
-                    pendingJob.append(current_job_id)
-
-    except FileNotFoundError:
-        print(f"Error: The file at {dataPath} was not found.")
-    
     return JobResponse(
         runningId=runningJob,
-        pendingId=pendingId
+        pendingId=pendingJob
     )
