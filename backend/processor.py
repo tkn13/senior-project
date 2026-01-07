@@ -1,6 +1,7 @@
 import influxdb_client, os, asyncio
 from influxdb_client import InfluxDBClient
 from templates import get_query_text_node_cpu, get_query_text_node_mem
+from process.job import get_job_id_by_node
 from typing import Optional
 from dataclasses import dataclass
 from datetime import datetime
@@ -80,39 +81,8 @@ async def get_node_mem(
 def get_running_job(
     node_id: str) -> list[str]:
 
-    return_value = []
+    return_value = get_job_id_by_node(int(node_id.replace("blade-n", "")))
     
-    try:
-        with open(dataPath, 'r') as file:
-            for line in file:
-                line = line.strip()
-                if not line:
-                    continue
-
-                parts = line.split(' ')
-
-                if len(parts) != 2:
-                    continue
-
-                header_info = parts[0].split(',')
-                current_job_id = None
-                for i in header_info:
-                    if 'job_id' in i:
-                        current_job_id = (i.split('='))[1]
-
-                details = parts[1].replace('"', "").split(",")
-                state = ""
-                node = ""
-                for i in details:
-                    if 'state' in i:
-                        state = (i.split('='))[1]
-                    elif 'node_alloc' in i:
-                        node = (i.split('='))[1]
-                if(state == "RUNNING" and node == node_id):
-                    return_value.append(current_job_id)
-    except FileNotFoundError:
-        print(f"Error: The file at {dataPath} was not found.")
-
     return return_value
 
 async def get_node_metric(
@@ -157,5 +127,5 @@ async def get_node_metric(
 
 async def main():
     print(get_running_job("blade-n1"))
-#if __name__ == "__main__":
-#    asyncio.run(main())
+##if __name__ == "__main__":
+##    asyncio.run(main())
