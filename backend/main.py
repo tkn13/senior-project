@@ -17,7 +17,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 from middleware import isPass
-from processor import get_node_metric
+from api.NodeDetail import get_node_metric
 from api.NodeList import get_list_of_node_state
 from api.Job import get_list_of_job_state
 

@@ -1,9 +1,7 @@
-from dataclasses import dataclass
-from dotenv import load_dotenv
+import subprocess
 import os
-
-load_dotenv()
-dataPath = os.getenv("DATA_NODE_PATH")
+from dataclasses import dataclass
+from pathlib import Path
 
 @dataclass
 class NodeListResponse:
@@ -12,29 +10,44 @@ class NodeListResponse:
     downNode: list[str]
 
 def get_list_of_node_state() -> NodeListResponse:
+    # 1. Resolve path relative to THIS file
+    base_path = Path(__file__).parent.resolve()
+    script_path = base_path / ".." / "process" / "listnode.sh"
 
-    input = ""
+    # 2. Check if the script exists and is executable
+    if not script_path.exists():
+        print(f"Error: Script not found at {script_path}")
+        return NodeListResponse([], [], [])
 
-    with open(dataPath) as line:
-        input = line.read()
+    try:
+        # 3. Use 'executable="/bin/bash"' if the script lacks a shebang
+        result = subprocess.run(
+            [str(script_path)], 
+            capture_output=True, 
+            text=True, 
+            check=True
+        )
+    except (subprocess.CalledProcessError, FileNotFoundError) as e:
+        print(f"Execution failed: {e}")
+        return NodeListResponse([], [], [])
 
-    idle = []
-    busy = []
-    down = []
+    idle, busy, down = [], [], []
 
-    for line in input.splitlines():
-        item = line.split(":")
-        nodes = item[1].split(",")
-        state = item[0].strip().lower()
-
-        if len(nodes) == 1 and nodes[0] == "":
+    # 4. Optimized Parsing
+    for line in result.stdout.splitlines():
+        if ":" not in line:
             continue
-        for node in nodes:
-            if state == "idle":
-                idle.append(node)
-            elif state == "busy":
-                busy.append(node)
-            else:
-                down.append(node)
+            
+        state_part, nodes_part = line.split(":", 1)
+        state = state_part.strip().lower()
+        # Clean up nodes, filtering out empty strings
+        nodes = [n.strip() for n in nodes_part.split(",") if n.strip()]
 
-    return NodeListResponse(idle, busy, down)                
+        if state == "idle":
+            idle.extend(nodes)
+        elif state == "busy":
+            busy.extend(nodes)
+        else:
+            down.extend(nodes)
+
+    return NodeListResponse(idle, busy, down)
