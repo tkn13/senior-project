@@ -20,8 +20,10 @@ from middleware import isPass
 from api.NodeDetail import get_node_metric
 from api.NodeList import get_list_of_node_state
 from api.Job import get_list_of_job_state
+from api.JobDetail import get_job_detail
 
 from schema.Job import JobResponse
+from schema.Job import JobDetailResponse
 
 app = FastAPI()
 
@@ -71,9 +73,6 @@ async def nodeById(headers: Annotated[CommonHeaders, Header()],
 async def jobAll(headers: Annotated[CommonHeaders, Header()]):
     return get_list_of_job_state()
  
-@app.get("/api/metrics/job/{job_id}")
+@app.get("/api/metrics/job/{job_id}", response_model=JobDetailResponse)
 async def jobById(job_id, headers: Annotated[CommonHeaders, Header()]):
-    return JSONResponse(
-        status_code=201,
-        content={"message": job_id}
-    )
+    return get_job_detail(job_id)
