@@ -1,5 +1,7 @@
 #include "Node.h"
 
+Node::Node() : nodeName(""), cpus(0) {}
+
 Node::Node(std::string nodeName, int cpus)
 	: nodeName(nodeName), cpus(cpus) {}
 

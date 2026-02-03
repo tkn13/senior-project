@@ -19,6 +19,7 @@ class NodeList{
 
 	const std::vector<Node>& getNodes() const;
 
+	Node getNodeByName(const std::string& nodeName) const;
 };
 
 #endif

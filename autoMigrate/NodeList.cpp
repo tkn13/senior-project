@@ -1,5 +1,6 @@
 #include "NodeList.h"
 #include <string>
+#include <stdexcept>
 
 NodeList& NodeList::getInstance(){
 	static NodeList instance;
@@ -16,4 +17,13 @@ NodeList::NodeList() {
 
 const std::vector<Node>& NodeList::getNodes() const{
 	return nodes;
+}
+
+Node NodeList::getNodeByName(const std::string& nodeName) const {
+	for (const auto& node : nodes) {
+		if (node.getNodeName() == nodeName) {
+			return node;
+		}
+	}
+	throw std::runtime_error("Node not found: " + nodeName);
 }

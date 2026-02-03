@@ -10,6 +10,7 @@ class Node {
 		int cpus;
 
 	public:
+		Node();
 		Node(std::string nodeName, int cpus);
 
 		std::string getNodeName() const;
