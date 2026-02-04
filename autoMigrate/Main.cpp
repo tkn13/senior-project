@@ -1,12 +1,34 @@
 #include <iostream>
-#include "NodeList.h"
-#include "Node.h"
+#include "JobDetail.h"
+#include "SlurmInterface.h"
+#include "JobPacker.h"
+#include <vector>
+#include <string>
 
 int main() {
-    NodeList& myCluster = NodeList::getInstance();
+   
+    std::vector<JobDetail> jobDetails;
+    
+    getJobDetails(jobDetails);
 
-    for (const auto& node : myCluster.getNodes()) {
-        std::cout << "Node: " << node.getNodeName() << " | CPUs: " << node.getCpus() << std::endl;
+    for (const auto& jobDetail : jobDetails) {
+        std::cout << "Job ID: " << jobDetail.jobId << ", CPUs: " << jobDetail.cpus << ", Node: " << jobDetail.srcNode.getNodeName() << std::endl;
+    }
+
+    rearrangeJobs(jobDetails);
+
+    for(const auto& jobDetail : jobDetails) {
+        std::cout << "Job ID: " << jobDetail.jobId 
+                  << ", CPUs: " << jobDetail.cpus 
+                  << ", SrcNode: " << jobDetail.srcNode.getNodeName() 
+                  << ", DestNode: " << jobDetail.destNode.getNodeName()
+                  << std::endl;
+    }
+
+    if (migrateDecision(jobDetails)) {
+        migrator(jobDetails);
+    } else {
+        std::cout << "No migration needed." << std::endl;
     }
 
     return 0;

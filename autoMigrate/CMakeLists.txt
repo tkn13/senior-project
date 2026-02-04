@@ -9,6 +9,8 @@ set(SOURCES
 	Main.cpp
 	Node.cpp
 	NodeList.cpp
+	SlurmInterface.cpp
+	JobPacker.cpp
 )
 
 add_executable(JobManager ${SOURCES})
