@@ -1,0 +1,101 @@
+#!/bin/bash
+
+jobId=$1
+destNode=$2
+
+SESSION_PATH=$(cat /scratch/.session/$jobId | awk '{print $1}')
+SESSION_PORT=$(cat /scratch/.session/$jobId | awk '{print $2}')
+IS_ORIGIN=$(cat /scratch/.session/$jobId | awk '{print $3}')
+SESSION_POOL=/scratch/.session
+
+rm -f /scratch/"$USER"/ckpts/"$SESSION_PATH"/*.dmtcp
+rm -f /scratch/"$USER"/ckpts/"$SESSION_PATH"/*.sh
+
+echo "Start Migration Job: $jobId to Node: $destNode"
+
+echo "Checkpoint job..."
+if dmtcp_command -p "$SESSION_PORT" -c; then
+    echo "Checkpoint job successfully!!"
+else
+    echo "Error: Checkpoint job failed!"
+    exit 1
+fi
+
+
+echo "Checking restart script..."
+
+if [ "$IS_ORIGIN" -eq 1 ]; then
+    DIR="/shared/home/$USER"
+else
+    DIR="/scratch/$USER/ckpts/$SESSION_PATH/"
+fi
+
+MAX_TRIES=120
+COUNT=0
+
+while true; do
+	if ls "$DIR"/dmtcp_restart_script* 1>/dev/null 2>&1; then
+		echo "Found restart script!"
+        break
+    fi
+
+    COUNT=$((COUNT+1))
+    if [ $COUNT -ge $MAX_TRIES ]; then
+        echo "Error: No dmtcp_restart_script* found in $DIR after $MAX_TRIES seconds."
+        exit 1
+    fi
+
+	sleep 1
+done
+
+echo "Moving restart script to session path"
+
+if [ "$IS_ORIGIN" -eq 1 ]; then
+	mv "$DIR"/dmtcp_restart_script* "/scratch/$USER/ckpts/$SESSION_PATH/"
+fi
+
+echo "Moving restart script done!"
+
+echo "Kill Current job..."
+
+if scancel $jobId; then
+	echo "Kill Job Sucessfully strating new job..."
+else
+	echo "Error can kill job $jobId"
+	exit 1
+fi
+
+WORK_DIR="/scratch/$USER/ckpts/$SESSION_PATH"
+filePath="$WORK_DIR/restart.sbatch"
+
+cd $WORK_DIR
+touch $filePath
+
+NODE=$(cat job.sbatch | awk -F'=' '/^#SBATCH[[:space:]]+--nodes=/ {print $2}')
+PROCESS=$(cat job.sbatch | awk -F'=' '/^#SBATCH[[:space:]]+--ntasks-per-node=/ {print $2}')
+
+NEW_PORT=$(dmtcp_coordinator -p 0 --exit-on-last --daemon 2>&1 | awk '/Port:/ {print $2}')
+
+rm -f $filePath 1>/dev/null 2>&1
+
+echo "#!/bin/bash" >> $filePath
+echo "#SBATCH --job-name=mul_matrix" >> $filePath
+echo "#SBATCH --nodes=$NODE" >> $filePath
+echo "#SBATCH --ntasks-per-node=$PROCESS" >> $filePath
+echo "#SBATCH --cpus-per-task=1" >> $filePath
+echo "#SBATCH --mem=500M" >> $filePath
+echo "#SBATCH --oversubscribe" >> $filePath
+echo "#SBATCH --output=initial_job_%j.out" >> $filePath
+echo "#SBATCH --nodelist=$destNode" >> $filePath
+echo "export DMTCP_COORD_HOST=blade-master" >> $filePath
+echo "export DMTCP_COORD_PORT=$NEW_PORT" >> $filePath
+echo "module load mpi/mpich" >> $filePath
+echo "export HWLOC_XMLFILE=/scratch/hwxml/canonical.xml" >> $filePath
+echo "export HWLOC_THISSYSTEM=1" >> $filePath
+echo "./dmtcp_restart_script.sh" >> $filePath
+
+jobId=$(sbatch restart.sbatch | awk '{print $4}')
+echo "Job migrate successfully job id: $jobId"
+
+touch "$SESSION_POOL/$jobId"
+echo "$SESSION_PATH $NEW_PORT 0" >> "$SESSION_POOL/$jobId"
