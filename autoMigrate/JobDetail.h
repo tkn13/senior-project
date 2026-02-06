@@ -7,6 +7,7 @@
 class JobDetail{
 	public:
         std::string jobId;
+        std::string user;
         int cpus;
         Node srcNode;
         Node destNode;

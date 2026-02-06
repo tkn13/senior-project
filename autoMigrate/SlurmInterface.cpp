@@ -34,7 +34,7 @@ std::string get_squeue_output() {
             (char*)"squeue", 
             (char*)"-h", 
             (char*)"-o", 
-            (char*)"%i %C %N", 
+            (char*)"%i %C %N %u", 
             nullptr
         };
 
@@ -76,11 +76,13 @@ void process(std::string job, std::vector<JobDetail>& jobDetails) {
             std::string jobId;
             int cpus;
             std::string nodeName;
-            lineStream >> jobId >> cpus >> nodeName;
+            std::string user;
+            lineStream >> jobId >> cpus >> nodeName >> user;
             JobDetail jobDetail;
             jobDetail.jobId = jobId;
             jobDetail.cpus = cpus;
             jobDetail.srcNode = NodeList::getInstance().getNodeByName(nodeName);
+            jobDetail.user = user;
             jobDetails.push_back(jobDetail);
         }
     }
@@ -88,6 +90,6 @@ void process(std::string job, std::vector<JobDetail>& jobDetails) {
 
 void getJobDetails(std::vector<JobDetail>& jobDetails) {
     std::string squeueOutput = get_squeue_output();
-    //std::string squeuOutput = "401 1 blade-n1\n402 1 blade-n2\n403 1 blade-n3";
-    process(squeuOutput, jobDetails);
+    //std::string squeueOutput = "401 1 blade-n1\n402 1 blade-n2\n403 1 blade-n3";
+    process(squeueOutput, jobDetails);
 }

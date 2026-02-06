@@ -1,6 +1,8 @@
 #include "Node.h"
 #include "NodeList.h"
 #include "JobDetail.h"
+#include "BladeConst.h"
+#include "JobPacker.h"
 #include <string>
 #include <vector>
 #include <set>
@@ -43,7 +45,7 @@ bool migrateDecision(const std::vector<JobDetail>& jobDetails) {
 void migrator(const std::vector<JobDetail>& jobDetails) {
     for (const auto& job : jobDetails) {
         if (job.srcNode.getNodeName() != job.destNode.getNodeName()) {
-            std::string command = "migrate " + job.jobId + " " + job.destNode.getNodeName();
+            std::string command = "sudo -u " + job.user + " " + MIGRATE_CMD_LOCATION + " " + job.jobId + " " + job.destNode.getNodeName();
             std::cout << "Executing command: " << command << std::endl;
             system(command.c_str());
         }
