@@ -34,7 +34,7 @@ std::string get_squeue_output() {
             (char*)"squeue", 
             (char*)"-h", 
             (char*)"-o", 
-            (char*)"%i %C %N %u", 
+            (char*)"%i %C %N %u %T", 
             nullptr
         };
 
@@ -77,13 +77,17 @@ void process(std::string job, std::vector<JobDetail>& jobDetails) {
             int cpus;
             std::string nodeName;
             std::string user;
-            lineStream >> jobId >> cpus >> nodeName >> user;
-            JobDetail jobDetail;
-            jobDetail.jobId = jobId;
-            jobDetail.cpus = cpus;
-            jobDetail.srcNode = NodeList::getInstance().getNodeByName(nodeName);
-            jobDetail.user = user;
-            jobDetails.push_back(jobDetail);
+            std::string state;
+            lineStream >> jobId >> cpus >> nodeName >> user >> state;
+            if(state == "RUNNING") {
+                JobDetail jobDetail;
+                jobDetail.jobId = jobId;
+                jobDetail.cpus = cpus;
+                jobDetail.srcNode = NodeList::getInstance().getNodeByName(nodeName);
+                jobDetail.user = user;
+                jobDetail.state = state;
+                jobDetails.push_back(jobDetail);
+            }
         }
     }
 }

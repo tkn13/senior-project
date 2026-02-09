@@ -11,10 +11,6 @@ int main() {
     
     getJobDetails(jobDetails);
 
-    for (const auto& jobDetail : jobDetails) {
-        std::cout << "Job ID: " << jobDetail.jobId << ", CPUs: " << jobDetail.cpus << ", Node: " << jobDetail.srcNode.getNodeName() << std::endl;
-    }
-
     rearrangeJobs(jobDetails);
 
     for(const auto& jobDetail : jobDetails) {
