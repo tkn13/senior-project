@@ -1,31 +1,12 @@
 #include <iostream>
-#include "JobDetail.h"
-#include "SlurmInterface.h"
-#include "JobPacker.h"
-#include <vector>
-#include <string>
+#include "Migrator.h"
 
 int main() {
    
-    std::vector<JobDetail> jobDetails;
+    if(migrate() == -1) {
+        std::cerr << "Migration failed" << std::endl;
+        return -1;
+    }
     
-    getJobDetails(jobDetails);
-
-    rearrangeJobs(jobDetails);
-
-    for(const auto& jobDetail : jobDetails) {
-        std::cout << "Job ID: " << jobDetail.jobId 
-                  << ", CPUs: " << jobDetail.cpus 
-                  << ", SrcNode: " << jobDetail.srcNode.getNodeName() 
-                  << ", DestNode: " << jobDetail.destNode.getNodeName()
-                  << std::endl;
-    }
-
-    if (migrateDecision(jobDetails)) {
-        migrator(jobDetails);
-    } else {
-        std::cout << "No migration needed." << std::endl;
-    }
-
     return 0;
 }
