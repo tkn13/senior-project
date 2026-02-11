@@ -1,0 +1,66 @@
+#!/bin/bash
+
+SAVE_POINT=/scratch/$USER/ckpts
+TEMP_POINT=/scratch/$USER/temp
+SESSION=$(date +"%Y%m%d%H%M%S")
+SESSION_POOL=/scratch/.session
+PORT=$(dmtcp_coordinator -p 0 --exit-on-last --daemon 2>&1 | awk '/Port:/ {print $2}')
+
+if [ ! -d "$SAVE_POINT" ];	then
+	mkdir -p "$SAVE_POINT"
+fi
+
+if [ ! -d "$TEMP_POINT" ];	then
+	mkdir -p "$TEMP_POINT"
+fi
+
+if [ ! -d "$SESSION_POOL" ]; then
+	mkdir -p "$SESSION_POOL"
+fi
+
+read -e -p "Enter Job path: " USER_INPUT
+read -p "Enter Argument of the program: " ARGUMENT
+read -p "Enter number of node: " NODE
+read -p "Enter number of process: " PROCESS
+
+JOB_PATH=$(realpath -m -- "$USER_INPUT" 2>/dev/null)
+
+fileName="$SESSION.temp"
+filePath="$TEMP_POINT/$fileName"
+touch $filePath
+
+echo "#!/bin/bash" >> $filePath
+echo "#SBATCH --job-name=mul_matrix" >> $filePath
+echo "#SBATCH --nodes=$NODE" >> $filePath
+echo "#SBATCH --ntasks-per-node=$PROCESS" >> $filePath
+echo "#SBATCH --output=initial_job_%j.out" >> $filePath
+echo "#SBATCH --cpus-per-task=1" >> $filePath
+echo "#SBATCH --mem=500M" >> $filePath
+echo "#SBATCH --oversubscribe" >> $filePath
+echo "export DMTCP_COORD_HOST=blade-master" >> $filePath
+echo "export DMTCP_COORD_PORT=$PORT" >> $filePath
+
+echo "module load mpi/mpich" >> $filePath
+echo "export HWLOC_XMLFILE=/scratch/hwxml/canonical.xml" >> $filePath
+echo "export HWLOC_THISSYSTEM=1" >> $filePath
+
+
+echo "srun --mpi=pmi2 dmtcp_launch --coord-host \$DMTCP_COORD_HOST \\" >> $filePath
+echo "	--coord-port \$DMTCP_COORD_PORT \\" >> $filePath
+echo "	--ckptdir "$SAVE_POINT/$SESSION" \\" >> $filePath
+echo "	$JOB_PATH $ARGUMENT" >> $filePath
+
+
+mkdir -p $SAVE_POINT/$SESSION
+
+mv $filePath "$SAVE_POINT/$SESSION/job.sbatch"
+
+cd "$SAVE_POINT/$SESSION"
+
+jobId=$(sbatch job.sbatch | awk '{print $4}') 
+echo "Job was sent successfully job id: $jobId"
+
+touch "$SESSION_POOL/$jobId"
+echo "$SESSION $PORT 1" >> "$SESSION_POOL/$jobId"
+
+

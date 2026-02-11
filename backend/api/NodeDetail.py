@@ -1,11 +1,14 @@
 import influxdb_client, os, asyncio
 from influxdb_client import InfluxDBClient
-from templates import get_query_text_node_cpu, get_query_text_node_mem
+from schema.query_generator import get_query_text_node_cpu, get_query_text_node_mem
 from typing import Optional
 from dataclasses import dataclass
 from datetime import datetime
 from dotenv import load_dotenv
 import os
+import re
+import subprocess
+
 
 load_dotenv()
 token = os.getenv("INFLUXDB_TOKEN")
@@ -77,42 +80,57 @@ async def get_node_mem(
             return_value.append(MetricUnit(record['_time'], record['_value']))
     return return_value
 
+def extract(data, target_num):
+    job_ids = []
+    # Pattern looks for 'blade-n' followed by a number OR bracketed ranges
+    pattern = r"blade-n(?:(\d+)|\[([^\]]+)\])"
+
+    for line in data.strip().splitlines():
+        # Split the line to separate Job ID from the blade string
+        parts = line.split(',', 1)
+        if len(parts) < 2:
+            continue
+
+        job_id = parts[0]
+        blade_info = parts[1]
+
+        match = re.search(pattern, blade_info)
+        if match:
+            simple_num, bracket_content = match.groups()
+
+            # Case 1: Simple number (e.g., blade-n1)
+            if simple_num and int(simple_num) == target_num:
+                job_ids.append(job_id)
+
+            # Case 2: Bracketed ranges (e.g., [2-4,6])
+            elif bracket_content:
+                sub_parts = bracket_content.split(',')
+                for p in sub_parts:
+                    if '-' in p:
+                        start, end = map(int, p.split('-'))
+                        if start <= target_num <= end:
+                            job_ids.append(job_id)
+                            break
+                    elif int(p) == target_num:
+                        job_ids.append(job_id)
+                        break
+
+    return job_ids
+
+def get_job_id_by_node(node_id):
+
+    result = subprocess.run(["squeue", "-h", "-o", "%A,%N"], capture_output=True, text=True)
+
+    if result.returncode == 0:
+        output = extract(result.stdout, node_id)
+        return output
+    return []
+
 def get_running_job(
     node_id: str) -> list[str]:
 
-    return_value = []
+    return_value = get_job_id_by_node(int(node_id.replace("blade-n", "")))
     
-    try:
-        with open(dataPath, 'r') as file:
-            for line in file:
-                line = line.strip()
-                if not line:
-                    continue
-
-                parts = line.split(' ')
-
-                if len(parts) != 2:
-                    continue
-
-                header_info = parts[0].split(',')
-                current_job_id = None
-                for i in header_info:
-                    if 'job_id' in i:
-                        current_job_id = (i.split('='))[1]
-
-                details = parts[1].replace('"', "").split(",")
-                state = ""
-                node = ""
-                for i in details:
-                    if 'state' in i:
-                        state = (i.split('='))[1]
-                    elif 'node_alloc' in i:
-                        node = (i.split('='))[1]
-                if(state == "RUNNING" and node == node_id):
-                    return_value.append(current_job_id)
-    except FileNotFoundError:
-        print(f"Error: The file at {dataPath} was not found.")
-
     return return_value
 
 async def get_node_metric(
@@ -154,8 +172,3 @@ async def get_node_metric(
         node_status="up", 
         current_job=get_running_job(node_id),
         resource_usage=resource_usage))
-
-async def main():
-    print(get_running_job("blade-n1"))
-#if __name__ == "__main__":
-#    asyncio.run(main())
