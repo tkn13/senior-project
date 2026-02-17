@@ -2,13 +2,14 @@ import { SideNavLink } from "../pages/NavLink";
 import { Outlet } from "react-router";
 
 export function Layout() {
-
     return (
-        <div className="flex">
-            < SideNavLink />
-            <div className="flex-1 p-4">
+        <div className="flex h-screen overflow-hidden bg-background">
+            <SideNavLink />
+
+            <main className="flex-1 overflow-y-auto">
                 <Outlet />
-            </div>
+            </main>
+            
         </div>
     );
 }

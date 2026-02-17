@@ -1,5 +1,4 @@
 import { NavLink } from "react-router";
-import '../css/SideNavLink.css';
 import { useAuth } from "../hook/useAuth";
 
 export function SideNavLink() {

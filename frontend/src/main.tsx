@@ -2,6 +2,8 @@ import ReactDOM from "react-dom/client";
 import { createBrowserRouter } from "react-router";
 import { RouterProvider } from "react-router/dom";
 
+import './css/main.css'
+
 import { AuthProvider } from "./context/AuthContext";
 
 import { Home } from "./pages/Home";
