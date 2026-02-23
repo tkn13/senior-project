@@ -2,11 +2,17 @@ import { useState, useMemo } from "react";
 import { CartesianGrid, Line, LineChart, XAxis } from "recharts";
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card"
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "./ui/chart";
-
+import { useFetch } from "@/hook/useFetch";
 interface NodeCardProp {
     cardTitle: string,
     cardDetail: string,
     cardState: "idle" | "busy" | "dead"
+}
+
+interface NodeCardData {
+    time: string,
+    cpu: number,
+    ram: number
 }
 
 type TimeRange = "30m" | "1hr" | "6hr" | "12hr" | "1D";
@@ -26,21 +32,11 @@ const CHART_CONFIG = {
     }
 } satisfies ChartConfig;
 
-const generateData = (startMin: number, endMin: number, baseValue: number) => {
-    const result = [];
-    for (let i = startMin; i <= endMin; i++) {
-        const timestamp = `10:${i.toString().padStart(2, '0')}`;
-        const value = baseValue + Math.floor(Math.random() * 11) - 5;
-        result.push({ time: timestamp, cpu: value, ram: value + 10 });
-    }
-    return result;
-};
 
 const getButtonClassName = (isActive: boolean, isDisabled: boolean) =>
-    `px-2 py-1 mb-1 rounded-sm font-sm transition-all ${
-        isActive
-            ? "bg-indigo-500 text-white"
-            : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+    `px-2 py-1 mb-1 rounded-sm font-sm transition-all ${isActive
+        ? "bg-indigo-500 text-white"
+        : "bg-gray-200 text-gray-700 hover:bg-gray-300"
     } ${isDisabled ? "cursor-not-allowed opacity-50" : ""}`;
 
 
@@ -51,24 +47,17 @@ export function NodeCard(props: NodeCardProp) {
     const [selectedTimeRange, setSelectedTimeRange] = useState<TimeRange>("30m");
     const isDisabled = props.cardState === "dead";
 
-    const simulatedData = useMemo(() => generateData(0, 30, 80), []);
+    const { data, isLoading } = useFetch<NodeCardData[]>('https://data');
 
-    const timeRangeButtons = useMemo(() =>
-        TIME_RANGES.map((item) => (
-            <button
-                key={item}
-                onClick={() => setSelectedTimeRange(item)}
-                disabled={isDisabled}
-                className={`px-2 py-1 m-1 rounded-sm font-sm transition-all ${
-                    selectedTimeRange === item
-                        ? "bg-indigo-500 text-white"
-                        : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                } ${isDisabled ? "cursor-not-allowed opacity-50" : ""}`}
-            >
-                {item}
-            </button>
-        )),
-        [selectedTimeRange, isDisabled]
+    const simulatedData = useMemo(
+        () => {
+            if (!data) return [];
+
+            console.log("MEMO was called")
+
+            return data;
+        },
+        [data, selectedTimeRange],
     );
 
     return (
@@ -111,14 +100,27 @@ export function NodeCard(props: NodeCardProp) {
                         </button>
                     </div>
                     <div>
-                        {timeRangeButtons}
+                        {TIME_RANGES.map((item) => (
+                            <button
+                                key={item}
+                                onClick={() => setSelectedTimeRange(item)}
+                                disabled={isDisabled}
+                                className={`px-3 py-1 m-1 rounded-sm font-sm transition-all ${selectedTimeRange === item
+                                        ? "bg-indigo-500 text-white"
+                                        : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                                    } ${isDisabled ? "cursor-not-allowed opacity-51" : ""}`}
+                            >
+                                {item}
+                            </button>
+                        ))
+                        }
                     </div>
                 </div>
 
                 <ChartContainer config={CHART_CONFIG}>
                     <LineChart
                         accessibilityLayer
-                        data={simulatedData}
+                        data={simulatedData ?? []}
                         margin={{
                             left: 12,
                             right: 12
