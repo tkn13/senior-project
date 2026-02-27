@@ -1,3 +1,5 @@
+find_package(Threads REQUIRED)
+
 add_library(migrator_lib
     Migrator.cpp
     Node.cpp
@@ -7,6 +9,8 @@ add_library(migrator_lib
 )
 
 target_include_directories(migrator_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+
+target_link_libraries(migrator_lib PRIVATE Threads::Threads)
 
 add_executable(migrator_bin main.cpp)
 target_link_libraries(migrator_bin PRIVATE migrator_lib)
