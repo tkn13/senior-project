@@ -1,0 +1,14 @@
+[Unit]
+Desription=Blade Automigrate service
+After=network.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+User=blade
+ExecStart=/shared/home/blade/senior-project/autoMigrate/build/src/server/server
+
+[Install]
+WantedBy=multi-user.target

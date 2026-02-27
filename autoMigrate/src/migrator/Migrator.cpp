@@ -19,18 +19,20 @@ int migrate() {
 
     rearrangeJobs(jobDetails);
 
-    for(const auto& jobDetail : jobDetails) {
-        std::cout << "Job ID: " << jobDetail.jobId 
-                  << ", CPUs: " << jobDetail.cpus 
-                  << ", SrcNode: " << jobDetail.srcNode.getNodeName() 
-                  << ", DestNode: " << jobDetail.destNode.getNodeName()
-                  << std::endl;
-    }
-
     if (migrateDecision(jobDetails)) {
-        migrator(jobDetails);
-    } else {
-        std::cout << "No migration needed." << std::endl;
+        
+	    migrator(jobDetails);
+	
+	    for(const auto& jobDetail : jobDetails) {
+		std::cout << "Job ID: " << jobDetail.jobId 
+		<< ", CPUs: " << jobDetail.cpus 
+                << ", SrcNode: " << jobDetail.srcNode.getNodeName() 
+                << ", DestNode: " << jobDetail.destNode.getNodeName()
+                << std::endl;
+    		}
+
+   } else {
+        //std::cout << "No migration needed." << std::endl;
     }
 
     return 0;
@@ -49,7 +51,7 @@ int migrate(std::atomic<bool>& running, std::condition_variable& cv, std::mutex&
         }
         
         std::unique_lock<std::mutex> lk(mtx);
-        cv.wait_for(lk, std::chrono::seconds(10), [&]{return !running;});
+        cv.wait_for(lk, std::chrono::seconds(60), [&]{return !running;});
     }
     std::cout << "Migrator stopping..." << std::endl;
     return 0;
