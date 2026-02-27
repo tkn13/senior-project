@@ -3,26 +3,21 @@
 #include <netinet/in.h>
 #include <unistd.h>
 #include <cstring>
+#include <vector>
 #include <thread>
 #include <shared_mutex>
 
 #include "include/config.h"
 #include "server.h"
 #include "Migrator.h"
+#include "SendJob.h"
 
 static int local_server_socket = -1;
 bool  server_running = true;
 
+
+
 void handleClient(int clientSocket) {
-
-    std::shared_lock<std::shared_mutex> lock(system_mutex, std::try_to_lock);
-
-    if(!lock.owns_lock()){
-        std::cout << "Migration in progress. Rejecting client.\r\n\r\n" << std::endl;
-        std::string errorMsg = "Service Unavailable\r\n\r\n";
-        send(clientSocket, errorMsg.c_str(), errorMsg.size(), 0);
-        return;
-    }
 
     std::string buffer(1024, 0);
     ssize_t bytesRead = recv(clientSocket, &buffer[0], buffer.size(), 0);
@@ -32,6 +27,9 @@ void handleClient(int clientSocket) {
 
         if (buffer == "TEST") {
             std::cout << "Received TEST command." << std::endl;
+        }
+        else if (buffer == "SendJob") {
+            send_job(clientSocket);
         }
         else {
             std::cout << "Received " << buffer << ", command not recognized." << std::endl;

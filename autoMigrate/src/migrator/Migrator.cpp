@@ -44,7 +44,6 @@ int migrate(std::atomic<bool>& running, std::condition_variable& cv, std::mutex&
         {
             std::cout << "Migration is in progresss..." << std::endl;
             std::unique_lock<std::shared_mutex> lock(system_mutex);
-            sleep(5);
             migrate();
             std::cout << "Migration done!" << std::endl;
         }

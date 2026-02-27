@@ -1,27 +1,41 @@
 #!/bin/bash
 
+# Default values (optional)
 SAVE_POINT=/scratch/$USER/ckpts
 TEMP_POINT=/scratch/$USER/temp
 SESSION=$(date +"%Y%m%d%H%M%S")
 SESSION_POOL=/scratch/.session
+
+# Function to show how to use the script
+usage() {
+    echo "Usage: $0 -j <job_path> -a <argument> -n <nodes> -p <processes>"
+    exit 1
+}
+
+# Parse flags
+while getopts "j:a:n:p:" opt; do
+  case $opt in
+    j) USER_INPUT="$OPTARG" ;;
+    a) ARGUMENT="$OPTARG" ;;
+    n) NODE="$OPTARG" ;;
+    p) PROCESS="$OPTARG" ;;
+    *) usage ;;
+  esac
+done
+
+# Check if required variables are empty
+if [[ -z "$USER_INPUT" || -z "$ARGUMENT" || -z "$NODE" || -z "$PROCESS" ]]; then
+    echo "Error: Missing required arguments."
+    usage
+fi
+
+
 PORT=$(dmtcp_coordinator -p 0 --exit-on-last --daemon 2>&1 | awk '/Port:/ {print $2}')
 
-if [ ! -d "$SAVE_POINT" ];	then
-	mkdir -p "$SAVE_POINT"
-fi
-
-if [ ! -d "$TEMP_POINT" ];	then
-	mkdir -p "$TEMP_POINT"
-fi
-
-if [ ! -d "$SESSION_POOL" ]; then
-	mkdir -p "$SESSION_POOL"
-fi
-
-read -e -p "Enter Job path: " USER_INPUT
-read -p "Enter Argument of the program: " ARGUMENT
-read -p "Enter number of node: " NODE
-read -p "Enter number of process: " PROCESS
+# Directory checks
+for dir in "$SAVE_POINT" "$TEMP_POINT" "$SESSION_POOL"; do
+    [[ ! -d "$dir" ]] && mkdir -p "$dir"
+done
 
 JOB_PATH=$(realpath -m -- "$USER_INPUT" 2>/dev/null)
 
@@ -35,8 +49,7 @@ echo "#SBATCH --nodes=$NODE" >> $filePath
 echo "#SBATCH --ntasks-per-node=$PROCESS" >> $filePath
 echo "#SBATCH --output=initial_job_%j.out" >> $filePath
 echo "#SBATCH --cpus-per-task=1" >> $filePath
-echo "#SBATCH --mem=500M" >> $filePath
-echo "#SBATCH --oversubscribe" >> $filePath
+echo "#SBATCH --mem=1024M" >> $filePath
 echo "export DMTCP_COORD_HOST=blade-master" >> $filePath
 echo "export DMTCP_COORD_PORT=$PORT" >> $filePath
 
