@@ -10,7 +10,7 @@
 #include "JobDetail.h"
 #include "SlurmInterface.h"
 
-std::string get_squeue_output() {
+std::string get_squeue_output(char* args[]) {
     int pipefd[2];
     if (pipe(pipefd) == -1) {
         perror("pipe");
@@ -30,14 +30,7 @@ std::string get_squeue_output() {
         dup2(pipefd[1], STDOUT_FILENO);
         close(pipefd[1]);
 
-        char* args[] = {
-            (char*)"squeue", 
-            (char*)"-h", 
-            (char*)"-o", 
-            (char*)"%i %C %N %u %T", 
-            nullptr
-        };
-
+       
         execvp(args[0], args);
         
         perror("execvp");
@@ -93,7 +86,14 @@ void process(std::string job, std::vector<JobDetail>& jobDetails) {
 }
 
 void getJobDetails(std::vector<JobDetail>& jobDetails) {
-    std::string squeueOutput = get_squeue_output();
+    char* args[] = {
+            (char*)"squeue", 
+            (char*)"-h", 
+            (char*)"-o", 
+            (char*)"%i %C %N %u %T", 
+            nullptr
+        };
+    std::string squeueOutput = get_squeue_output(args);
     //std::string squeueOutput = "401 1 blade-n1\n402 1 blade-n2\n403 1 blade-n3";
     process(squeueOutput, jobDetails);
 }
