@@ -1,6 +1,7 @@
 set(SERVER_SOURCES
     main.cpp
     server.cpp
+    SendJob.cpp
 )
 
 set(CLIENT_SOURCES

@@ -83,8 +83,7 @@ echo "#SBATCH --job-name=mul_matrix" >> $filePath
 echo "#SBATCH --nodes=$NODE" >> $filePath
 echo "#SBATCH --ntasks-per-node=$PROCESS" >> $filePath
 echo "#SBATCH --cpus-per-task=1" >> $filePath
-echo "#SBATCH --mem=500M" >> $filePath
-echo "#SBATCH --oversubscribe" >> $filePath
+echo "#SBATCH --mem=1024M" >> $filePath
 echo "#SBATCH --output=initial_job_%j.out" >> $filePath
 echo "#SBATCH --nodelist=$destNode" >> $filePath
 echo "export DMTCP_COORD_HOST=blade-master" >> $filePath

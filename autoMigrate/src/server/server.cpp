@@ -3,13 +3,19 @@
 #include <netinet/in.h>
 #include <unistd.h>
 #include <cstring>
+#include <vector>
 #include <thread>
+#include <shared_mutex>
 
 #include "include/config.h"
 #include "server.h"
+#include "Migrator.h"
+#include "SendJob.h"
 
 static int local_server_socket = -1;
 bool  server_running = true;
+
+
 
 void handleClient(int clientSocket) {
 
@@ -21,6 +27,9 @@ void handleClient(int clientSocket) {
 
         if (buffer == "TEST") {
             std::cout << "Received TEST command." << std::endl;
+        }
+        else if (buffer == "SendJob") {
+            send_job(clientSocket);
         }
         else {
             std::cout << "Received " << buffer << ", command not recognized." << std::endl;
