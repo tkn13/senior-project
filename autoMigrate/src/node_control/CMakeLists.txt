@@ -1,5 +1,5 @@
 
-add_library(migrator_lib
+add_library(node_control_lib
     SlurmInterface.cpp
 )
 

@@ -64,12 +64,12 @@ std::vector<JobState> get_job_state(){
     
     std::string raw_data = get_slurm_output(args);
 
-    if(raw_data.empty()) return job_state;
+    if(raw_data.empty()) return Job_State;
 
     std::stringstream ss(raw_data);
     std::string line;
 
-    while(std::get_line(ss, line)){
+    while(std::getline(ss, line)){
 
         if(!line.empty()){
 
@@ -89,16 +89,5 @@ std::vector<JobState> get_job_state(){
 
     }
 
-    return job_state;
-}
-
-int main(){
-
-    std::vector<JobState> output = get_job_state();
-
-        for(JobState j : output){
-            std::cout << j.job_id << " " << j.job_state << std::endl;
-        }
-
-    return 0;
+    return Job_State;
 }

@@ -2,6 +2,7 @@
 #define SLURMINTERFACE_H
 
 #include <string>
+#include <vector>
 
 class JobState {
     public:
@@ -12,5 +13,6 @@ class JobState {
 };
 
 std::string get_slurm_output(char* args[]);
+std::vector<JobState> get_job_state();
 
 #endif
